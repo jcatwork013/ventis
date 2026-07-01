@@ -1,0 +1,22 @@
+# Node / Next
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# Go
+backend/api
+backend/seed
+*.test
+
+# Env
+.env
+.env.local
+*/.env
+*/.env.local
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

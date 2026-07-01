@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: artjourneys
+          POSTGRES_PASSWORD: artjourneys
+          POSTGRES_DB: artjourneys
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U artjourneys"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: backend/go.sum
+      - name: Tidy & vet
+        run: |
+          go mod tidy
+          go vet ./...
+      - name: Test
+        env:
+          TEST_DATABASE_URL: postgres://artjourneys:artjourneys@localhost:5432/artjourneys?sslmode=disable
+        run: go test ./... -count=1
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+        run: npm run build

@@ -1,0 +1,54 @@
+# Production override for ventis.9bricks.com (behind host nginx + Cloudflare).
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Containers bind to 127.0.0.1 only; the host nginx reverse-proxies the public
+# domains to them (see deploy/nginx/). DB and Redis stay internal to the network.
+services:
+  db:
+    restart: unless-stopped
+    ports: !reset []          # keep Postgres off the host; internal network only
+
+  redis:
+    restart: unless-stopped
+    ports: !reset []
+
+  backend:
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgres://artjourneys:artjourneys@db:5432/artjourneys?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: https://ventis.vn,https://www.ventis.vn
+      MAIL_TO: info@ventis.vn
+      # Admin (bootstrapped on first boot — CHANGE THESE in production).
+      JWT_SECRET: "ventis-9bricks-prod-3f8c1a92d7e64b05-long-random-secret"
+      ADMIN_EMAIL: admin@ventis.vn
+      ADMIN_PASSWORD: "Ventis@2026"
+      ADMIN_NAME: "VENTIS Admin"
+      # Uploads are written here and served from this API host.
+      UPLOAD_DIR: /app/uploads
+      PUBLIC_URL: https://api.ventis.vn
+      # Anti-bot captcha is a self-hosted math challenge signed with JWT_SECRET.
+      # No extra config needed.
+    volumes:
+      - uploads:/app/uploads
+    ports: !override
+      - "127.0.0.1:18090:8080"
+
+  frontend:
+    restart: unless-stopped
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: https://api.ventis.vn
+        NEXT_PUBLIC_SITE_URL: https://ventis.vn
+    environment:
+      API_INTERNAL_URL: http://backend:8080
+      NEXT_PUBLIC_API_URL: https://api.ventis.vn
+      NEXT_PUBLIC_SITE_URL: https://ventis.vn
+    ports: !override
+      - "127.0.0.1:13100:3000"
+
+volumes:
+  uploads:

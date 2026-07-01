@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: artjourneys
+      POSTGRES_PASSWORD: artjourneys
+      POSTGRES_DB: artjourneys
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artjourneys -d artjourneys"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: "8080"
+      APP_ENV: production
+      DATABASE_URL: postgres://artjourneys:artjourneys@db:5432/artjourneys?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: http://localhost:3000
+      MAIL_TO: studio@artjourneys.travel
+    ports:
+      - "8080:8080"
+    # The API runs embedded migrations automatically on boot.
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Inlined into the browser bundle at build time.
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    depends_on:
+      - backend
+    environment:
+      # Used for server-side fetches inside the compose network.
+      API_INTERNAL_URL: http://backend:8080
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* --font-serif / --font-sans / --font-mono are injected by next/font in
+     app/layout.tsx (self-hosted, preloaded, with the vietnamese subset). */
+
+  /* Dark (emerald) context */
+  --bg-base: oklch(22% 0.045 165);
+  --bg-elev: oklch(30% 0.06 165);
+  --bg-deep: oklch(19% 0.04 165);
+  --ink: oklch(97% 0.012 90);
+  --ink-muted: oklch(78% 0.02 150);
+
+  /* Light (cream) context */
+  --cream: oklch(97% 0.012 90);
+  --cream-elev: oklch(100% 0 0);
+  --cream-line: oklch(88% 0.02 90);
+  --cream-ink: oklch(22% 0.045 165);
+  --cream-muted: oklch(45% 0.03 165);
+
+  --accent: #f9d86d;
+  --accent-soft: #fbe49a;
+  --line: oklch(40% 0.03 165);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Offset in-page anchor targets for the fixed header. */
+  section[id] {
+    scroll-margin-top: 96px;
+  }
+  body {
+    @apply bg-bg-base text-ink font-sans antialiased;
+    font-size: 17px;
+    line-height: 1.7;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif font-medium;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--bg-base);
+  }
+  /* Interactive affordance — clickable elements show the pointer cursor. */
+  button:not(:disabled),
+  [role="button"],
+  a[href],
+  label[for],
+  select,
+  summary {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* Uppercase tracked champagne label that prefixes every section. */
+  .eyebrow {
+    @apply font-sans text-[11px] font-semibold uppercase text-accent;
+    letter-spacing: 0.25em;
+  }
+
+  /* Small numeric "01"–"04" marker. */
+  .section-index {
+    @apply font-sans text-xs font-medium uppercase text-ink-muted;
+    letter-spacing: 0.18em;
+  }
+
+  .shell {
+    @apply mx-auto w-full max-w-shell px-6 md:px-10;
+  }
+
+  /* A cream (light) section. Headings inside flip to deep emerald. */
+  .section-cream {
+    @apply bg-cream text-cream-ink;
+  }
+
+  /* Gold accent word inside serif headings ("kết nối") — upright, inherits the
+     heading's case/weight so it reads as one continuous line, just gold. */
+  .accent-word {
+    @apply font-serif text-accent;
+  }
+
+  /* Editorial prose for markdown bodies (dark context). */
+  .prose-art {
+    @apply text-ink-muted leading-[1.85];
+  }
+  .prose-art h2 { @apply font-serif text-2xl md:text-3xl text-ink mt-12 mb-4 font-medium; }
+  .prose-art h3 { @apply font-serif text-xl text-ink mt-8 mb-3 font-medium; }
+  .prose-art p { @apply mb-5; }
+  .prose-art a { @apply text-accent underline underline-offset-4; }
+  .prose-art ul { @apply list-disc pl-5 mb-5 space-y-2; }
+  .prose-art strong { @apply text-ink font-medium; }
+
+  /* Gold solid button. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-accent px-7 py-3 text-xs font-semibold
+           uppercase tracking-[0.18em] text-bg-base transition-colors duration-300 hover:bg-accent-soft;
+  }
+  /* Gold outline button on dark. */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border border-accent/60 px-7 py-3 text-xs
+           font-semibold uppercase tracking-[0.18em] text-ink transition-colors duration-300
+           hover:border-accent hover:text-accent;
+  }
+  /* Outline button on cream. */
+  .btn-ghost-cream {
+    @apply inline-flex items-center justify-center rounded-full border border-cream-ink/25 px-7 py-3 text-xs
+           font-semibold uppercase tracking-[0.18em] text-cream-ink transition-colors duration-300
+           hover:border-accent hover:text-accent;
+  }
+
+  .field-label {
+    @apply mb-2 block font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-muted;
+  }
+  .field-input {
+    @apply w-full rounded-xl border border-line bg-bg-deep px-4 py-3 text-ink placeholder:text-ink-muted/60
+           outline-none transition-colors focus:border-accent;
+  }
+}
+
+/* Hairline separators used between sections (dark context). */
+.hairline {
+  border-top: 1px solid var(--line);
+}

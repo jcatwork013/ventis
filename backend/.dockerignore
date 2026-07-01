@@ -1,0 +1,6 @@
+.env
+.env.local
+*.test
+api
+seed
+README.md
